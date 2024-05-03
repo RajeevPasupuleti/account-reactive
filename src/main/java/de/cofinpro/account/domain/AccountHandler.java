@@ -74,14 +74,13 @@ public class AccountHandler {
      */
     private Mono<List<SalaryResponse>> selectSalaries(String email, Optional<String> searchPeriod) {
             return userRepository.findByEmail(email).ofType(Login.class)
-                    .flatMap(login -> searchPeriod.isEmpty()
-                            ? salaryRepository.findAllByEmail(email, Sort.by(ASC, "period"))
-                                .map(salary -> SalaryResponse.fromLoginAndSalary(salary, login))
-                                .collectList()
-                            : salaryRepository
-                                .findByEmployeeAndPeriod(email, Salary.yearFirst(searchPeriod.get()))
-                                .map(salary -> List.of(SalaryResponse.fromLoginAndSalary(salary, login)))
-                                .defaultIfEmpty(List.of())
+                    .flatMap(login -> searchPeriod.map(month -> salaryRepository
+                            .findByEmployeeAndPeriod(email, Salary.yearFirst(month))
+                            .map(salary -> List.of(SalaryResponse.fromLoginAndSalary(salary, login)))
+                            .defaultIfEmpty(List.of()))
+                            .orElseGet(() -> salaryRepository.findAllByEmail(email, Sort.by(ASC, "period"))
+                            .map(salary -> SalaryResponse.fromLoginAndSalary(salary, login))
+                            .collectList())
                     );
     }
 

@@ -77,7 +77,7 @@ public class AuditLogger {
     }
 
     /**
-     * audit loggin for failed logins to authenticated endpoints.
+     * audit logging for failed logins to authenticated endpoints.
      */
     public Mono<SecurityEvent> logFailedLogin(String user, String path) {
         return auditRepository.save(SecurityEvent.builder().action("LOGIN_FAILED").subject(user)

@@ -1,7 +1,6 @@
 package de.cofinpro.account.configuration;
 
 import de.cofinpro.account.persistence.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
@@ -25,7 +24,6 @@ public class AuthenticationConfiguration {
      * @return UserDetailsService instance (anonymous via method-reference).
      */
     @Bean
-    @Autowired
     public ReactiveUserDetailsService userDetailsService(LoginReactiveRepository users,
                                                          LoginRoleReactiveRepository roles) {
         return email -> users.findByEmail(email)

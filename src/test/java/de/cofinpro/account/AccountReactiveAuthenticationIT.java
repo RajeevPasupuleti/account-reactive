@@ -27,7 +27,7 @@ import static de.cofinpro.account.configuration.AuthenticationConfiguration.*;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@SpringBootTest
+@SpringBootTest(properties = { "spring.r2dbc.url=r2dbc:h2:file://././src/test/resources/data/auth_test_db" })
 @AutoConfigureWebTestClient
 class AccountReactiveAuthenticationIT {
 
@@ -40,7 +40,7 @@ class AccountReactiveAuthenticationIT {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    static final Path TEST_DB_PATH = Path.of("./src/test/resources/data/test_db.mv.db");
+    static final Path TEST_DB_PATH = Path.of("./src/test/resources/data/auth_test_db.mv.db");
     static boolean adminSignedUp = false;
 
     @BeforeAll

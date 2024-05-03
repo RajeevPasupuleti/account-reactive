@@ -2,7 +2,6 @@ package de.cofinpro.account.configuration;
 
 import de.cofinpro.account.persistence.Role;
 import de.cofinpro.account.persistence.RoleReactiveRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,7 +16,6 @@ import java.util.List;
 public class AdminConfiguration {
 
     @Bean
-    @Autowired
     public List<Role> getRoles(RoleReactiveRepository roles) {
         return roles.findAll().collectList().block(Duration.ofMillis(300));
     }

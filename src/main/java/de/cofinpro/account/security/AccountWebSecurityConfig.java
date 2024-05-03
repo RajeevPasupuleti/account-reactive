@@ -1,7 +1,7 @@
 package de.cofinpro.account.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -17,10 +17,10 @@ import org.springframework.security.web.server.authorization.ServerAccessDeniedH
  * manager.
  */
 @EnableWebFluxSecurity
+@Configuration
 public class AccountWebSecurityConfig {
 
     @Bean
-    @Autowired
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http,
                                                             ReactiveAuthenticationManager authenticationManager,
                                                             ServerAccessDeniedHandler accessDeniedHandler,

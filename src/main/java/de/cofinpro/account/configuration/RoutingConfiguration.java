@@ -4,7 +4,6 @@ import de.cofinpro.account.audit.AuditHandler;
 import de.cofinpro.account.domain.AccountHandler;
 import de.cofinpro.account.authentication.AuthenticationHandler;
 import de.cofinpro.account.admin.AdminHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -19,7 +18,6 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class RoutingConfiguration {
 
     @Bean
-    @Autowired
     public RouterFunction<ServerResponse> routes(AuthenticationHandler authenticationHandler,
                                                  AccountHandler accountHandler,
                                                  AdminHandler adminHandler,

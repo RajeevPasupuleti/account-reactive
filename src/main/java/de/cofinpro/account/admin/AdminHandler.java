@@ -25,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static de.cofinpro.account.configuration.AdminConfiguration.*;
@@ -102,7 +103,7 @@ public class AdminHandler {
                                 .then(userRepository.deleteByEmail(email))
                                 .then(principal)
                                 .flatMap(admin -> auditLogger.logDeleteUser(admin.getName(), email))
-                                .map(secEvent -> new UserDeletedResponse(email, DELETED_SUCCESSFULLY));
+                                .then(Mono.just(new UserDeletedResponse(email, DELETED_SUCCESSFULLY)));
                     }
                 });
     }
@@ -150,21 +151,26 @@ public class AdminHandler {
         if (!hibernateValidationErrors.isEmpty()) {
             return Mono.error(new ServerWebInputException(hibernateValidationErrors));
         }
-        boolean lockRequested = lockToggleRequest.operation().equalsIgnoreCase("lock");
         return roleRepository.findRolesByEmail(lockToggleRequest.user())
                 .flatMap(this::isAdmin)
-                .flatMap(isAdmin -> {
-                    if (TRUE.equals(isAdmin)) {
-                        return Mono.error(new ServerWebInputException(CANT_LOCK_ADMIN_ERRORMSG));
-                    } else {
-                        return userRepository
-                                .toggleLock(lockToggleRequest.user(), lockRequested)
-                                .then(principal)
-                                .flatMap(admin -> auditLogger.logToggleUserLock(admin.getName(), lockToggleRequest))
-                                .map(secEvent -> new StatusResponse("User %s %sed!".formatted(lockToggleRequest.user(),
-                                        lockRequested ? "lock" : "unlock")));
-                    }
-                });
+                .flatMap(performLockToggleIfAdminOrError(lockToggleRequest, principal));
+    }
+
+    private Function<Boolean, Mono<StatusResponse>>
+    performLockToggleIfAdminOrError(LockUserToggleRequest lockToggleRequest, Mono<? extends Principal> principal) {
+        boolean lockRequested = lockToggleRequest.operation().equalsIgnoreCase("lock");
+        return isAdmin -> {
+            if (TRUE.equals(isAdmin)) {
+                return Mono.error(new ServerWebInputException(CANT_LOCK_ADMIN_ERRORMSG));
+            } else {
+                return userRepository
+                        .toggleLock(lockToggleRequest.user(), lockRequested)
+                        .then(principal)
+                        .flatMap(admin -> auditLogger.logToggleUserLock(admin.getName(), lockToggleRequest))
+                        .then(Mono.just(new StatusResponse("User %s %sed!".formatted(lockToggleRequest.user(),
+                                lockRequested ? "lock" : "unlock"))));
+            }
+        };
     }
 
     /**
@@ -192,7 +198,7 @@ public class AdminHandler {
                         : roleRepository.save(LoginRole.builder().email(roleToggleRequest.user()).role(requestedRole).build())
                 ).then(principal)
                 .flatMap(admin -> auditLogger.logToggleRole(admin.getName(), roleToggleRequest))
-                .flatMap(sec -> updatedUserResponse(roleToggleRequest.user()));
+                .then(updatedUserResponse(roleToggleRequest.user()));
     }
 
     /**
@@ -208,7 +214,7 @@ public class AdminHandler {
     }
 
     /**
-     * check the rules applied by the specification on which role grnats or revokes are allowed and possible.
+     * check the rules applied by the specification on which role grants or revokes are allowed and possible.
      * @param userRoles the user's roles BEFORE the PUT from the database.
      * @return error mono in case some rule is violated, a Mono with the requestedRole for further processing
      *         if all rules pass.
@@ -244,8 +250,9 @@ public class AdminHandler {
     private <T> String validateHibernate(T request, Class<T> classOfRequest) {
         Errors errors = new BeanPropertyBindingResult(request, classOfRequest.getName());
         validator.validate(request, errors);
-        return errors.hasErrors() ? errors.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .collect(Collectors.joining(" && "))
+        return errors.hasErrors()
+                ? errors.getAllErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(" && "))
                 : "";
     }
 }

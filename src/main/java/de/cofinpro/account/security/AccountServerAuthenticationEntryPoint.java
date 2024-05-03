@@ -30,8 +30,7 @@ public class AccountServerAuthenticationEntryPoint implements ServerAuthenticati
     @Override
     public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException ex) {
         if (ex instanceof AccountBadCredentialsException exception) {
-            return bruteForceProtector.handleLoginFail(exception.getUser(),
-                            exchange.getRequest().getPath().value())
+            return bruteForceProtector.handleLoginFail(exception.getUser(), exchange.getRequest().getPath().value())
                     .then(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, ex.getMessage())));
         }
         return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, ex.getMessage()));

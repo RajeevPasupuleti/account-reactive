@@ -14,13 +14,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.IntStream;
 
 import static de.cofinpro.account.AccountReactiveAuthenticationIT.signup;
 import static org.hamcrest.Matchers.equalTo;
 
-@SpringBootTest
+@SpringBootTest(properties = { "spring.r2dbc.url=r2dbc:h2:file://././src/test/resources/data/audit_test_db" })
 @AutoConfigureWebTestClient
 class AccountReactiveAuditIT {
 
@@ -29,11 +31,13 @@ class AccountReactiveAuditIT {
     @Autowired
     WebTestClient webClient;
 
+    static final Path TEST_DB_PATH = Path.of("./src/test/resources/data/audit_test_db.mv.db");
+
     @BeforeAll
     static void dbSetup() throws IOException {
-        AccountReactiveAuthenticationIT.dbSetup();
+        Files.deleteIfExists(TEST_DB_PATH);
+        Files.copy(Path.of("./src/test/resources/data/account_template.mv.db"), TEST_DB_PATH);
     }
-
 
     @BeforeEach
     void setup() {
@@ -126,7 +130,7 @@ class AccountReactiveAuditIT {
                 .expectBody(AuditEventResponse[].class)
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "CHANGE_PASSWORD".equals(resp.action())).findFirst()
-                        .get().subject(), equalTo("ac@acme.com"));
+                        .orElseThrow().subject(), equalTo("ac@acme.com"));
     }
 
     @Test
@@ -141,10 +145,10 @@ class AccountReactiveAuditIT {
                 .expectBody(AuditEventResponse[].class)
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "ACCESS_DENIED".equals(resp.action())).findFirst()
-                        .get().subject(), equalTo("admin@acme.com"))
+                        .orElseThrow().subject(), equalTo("admin@acme.com"))
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "ACCESS_DENIED".equals(resp.action())).findFirst()
-                        .get().path(), equalTo("/api/empl/payment"));
+                        .orElseThrow().path(), equalTo("/api/empl/payment"));
     }
 
     @Test
@@ -160,13 +164,13 @@ class AccountReactiveAuditIT {
                 .expectBody(AuditEventResponse[].class)
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "BRUTE_FORCE".equals(resp.action())).findFirst()
-                        .get().subject(), equalTo("ad@acme.com"))
+                        .orElseThrow().subject(), equalTo("ad@acme.com"))
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "LOCK_USER".equals(resp.action())).findFirst()
-                        .get().subject(), equalTo("ad@acme.com"))
+                        .orElseThrow().subject(), equalTo("ad@acme.com"))
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "LOCK_USER".equals(resp.action())).findFirst()
-                        .get().object(), equalTo("Lock user ad@acme.com"));
+                        .orElseThrow().object(), equalTo("Lock user ad@acme.com"));
     }
 
     @Test
@@ -187,7 +191,7 @@ class AccountReactiveAuditIT {
                 .expectBody(AuditEventResponse[].class)
                 .value(list -> Arrays.stream(list)
                         .filter(resp -> "UNLOCK_USER".equals(resp.action())).findFirst()
-                        .get().object(), equalTo("Unlock user ae@acme.com"));
+                        .orElseThrow().object(), equalTo("Unlock user ae@acme.com"));
     }
 
     void giveAuditorRole() {

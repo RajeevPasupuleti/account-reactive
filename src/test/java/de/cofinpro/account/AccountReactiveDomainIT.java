@@ -14,13 +14,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static de.cofinpro.account.AccountReactiveAuthenticationIT.signup;
 import static de.cofinpro.account.configuration.AccountConfiguration.*;
 import static org.hamcrest.Matchers.equalTo;
 
-@SpringBootTest
+@SpringBootTest(properties = { "spring.r2dbc.url=r2dbc:h2:file://././src/test/resources/data/domain_test_db" })
 @AutoConfigureWebTestClient
 class AccountReactiveDomainIT {
 
@@ -29,9 +31,12 @@ class AccountReactiveDomainIT {
 
     static boolean usersSignedUp = false;
 
+    static final Path TEST_DB_PATH = Path.of("./src/test/resources/data/domain_test_db.mv.db");
+
     @BeforeAll
     static void dbSetup() throws IOException {
-        AccountReactiveAuthenticationIT.dbSetup();
+        Files.deleteIfExists(TEST_DB_PATH);
+        Files.copy(Path.of("./src/test/resources/data/account_template.mv.db"), TEST_DB_PATH);
     }
 
     @BeforeEach

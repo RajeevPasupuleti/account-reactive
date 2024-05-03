@@ -2,7 +2,7 @@ package de.cofinpro.account.authentication;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * single property object transporting a new password for /api/auth/changepass endpoint

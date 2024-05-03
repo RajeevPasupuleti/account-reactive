@@ -1,8 +1,8 @@
 package de.cofinpro.account.domain;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import static de.cofinpro.account.configuration.AuthenticationConfiguration.EMAIL_REGEX;
 import static de.cofinpro.account.configuration.AccountConfiguration.PERIOD_REGEX;

@@ -31,7 +31,6 @@ public class AccountServerAccessDeniedHandler implements ServerAccessDeniedHandl
         return exchange.getPrincipal()
                 .flatMap(user ->
                         auditLogger.logAccessDenied(user.getName(), exchange.getRequest().getPath().value()))
-                .flatMap(secEvent ->
-                        Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, denied.getMessage() + "!")));
+                .then(Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, denied.getMessage() + "!")));
     }
 }

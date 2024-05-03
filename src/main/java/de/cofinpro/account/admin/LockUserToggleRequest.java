@@ -1,7 +1,7 @@
 package de.cofinpro.account.admin;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import static de.cofinpro.account.configuration.AuthenticationConfiguration.EMAIL_REGEX;
 
